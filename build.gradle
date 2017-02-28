@@ -1,0 +1,56 @@
+group 'io.github.miaoxinguo'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'maven-publish'
+
+// 定义版本号
+ext {
+    slf4jVersion = '1.7.21'
+    logbackVersion = '1.1.9'
+    junitVersion = '4.12'
+}
+
+[compileJava, javadoc, compileTestJava]*.options*.encoding = 'UTF-8'
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile group: 'org.slf4j', name: 'slf4j-api', version: "${slf4jVersion}"
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
+
+    runtime group: 'ch.qos.logback', name: 'logback-core', version: "${logbackVersion}"
+    runtime group: 'ch.qos.logback', name: 'logback-classic', version: "${logbackVersion}"
+
+    testCompile group: 'junit', name: 'junit', version: "${junitVersion}"
+}
+
+// 设置是否下载源码和文档
+idea {
+    module {
+        downloadJavadoc = false
+        downloadSources = false
+    }
+}
+
+// 覆盖已有的task (用于打包源文件, 用于定义某个`publication`中的源文件包, 如下面的: `artifact sourceJar`)
+task sourceJar(type: Jar) {
+    from sourceSets.main.allJava
+    classifier "sources" // 定义一个标志 (生成的jar包后面加上sources, 如: common-2.2.11-sources.jar)
+}
+
+// 发布到本地仓库
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            // 打包源码和class
+            from components.java    // 发布java组件
+
+            // 定义源码task
+            artifact sourceJar
+        }
+    }
+}
