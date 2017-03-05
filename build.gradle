@@ -1,4 +1,4 @@
-group 'io.github.miaoxinguo'
+group 'com.github.miaoxinguo'
 version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
