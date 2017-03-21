@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <settings>
+        <!-- changes from the defaults -->
+        <setting name="lazyLoadingEnabled" value="false"/>
+    </settings>
+
+    <typeHandlers>
+        <typeHandler handler="com.github.miaoxinguo.mybatis.plugin.typeHandler.LocalDateTimeTypeHandler"/>
+    </typeHandlers>
+
+    <plugins>
+        <plugin interceptor="com.github.miaoxinguo.mybatis.plugin.interceptor.PaginationInterceptor">
+            <property name="dialect" value="mysql"/>
+        </plugin>
+    </plugins>
+
+    <environments default="development">
+        <environment id="development">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="com.mysql.driver.jdbcDriver"/>
+                <property name="url" value="jdbc:mysql://127.0.0.1:3306/mybatis-plugin"/>
+                <property name="username" value="miaoxg"/>
+                <property name="password" value="miaoxg2002"/>
+            </dataSource>
+        </environment>
+    </environments>
+
+    <mappers>
+        <package name="com.github.miaoxinguo.mybatis.plugin.mapper"/>
+    </mappers>
+</configuration>

@@ -7,12 +7,12 @@ apply plugin: 'maven-publish'
 
 // 定义版本号
 ext {
-    slf4jVersion = '1.7.21'
-    logbackVersion = '1.1.9'
+    slf4jVersion = '1.7.22'
     junitVersion = '4.12'
 }
 
 [compileJava, javadoc, compileTestJava]*.options*.encoding = 'UTF-8'
+
 
 repositories {
     jcenter()
@@ -20,14 +20,11 @@ repositories {
 
 dependencies {
     compile group: 'org.slf4j', name: 'slf4j-api', version: "${slf4jVersion}"
-    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
     compile group: 'org.mybatis.spring.boot', name: 'mybatis-spring-boot-starter', version: '1.2.0'
 
-    runtime 'mysql:mysql-connector-java:5.1.35'
-    runtime group: 'ch.qos.logback', name: 'logback-core', version: "${logbackVersion}"
-    runtime group: 'ch.qos.logback', name: 'logback-classic', version: "${logbackVersion}"
-
     testCompile group: 'junit', name: 'junit', version: "${junitVersion}"
+
+    testRuntime 'mysql:mysql-connector-java:5.1.35'
 }
 
 // 设置是否下载源码和文档

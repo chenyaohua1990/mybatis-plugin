@@ -1,11 +1,11 @@
-package com.github.miaoxinguo.mybatis.plugin.mapper;
+package com.github.miaoxinguo.mybatis.plugin;
 
 import java.io.Serializable;
 
 /**
  * 泛型接口
  */
-public interface GenericMapper<T, PK extends Serializable> {
+public interface BaseMapper<T, PK extends Serializable> {
 
     /**
      * 插入一条记录
