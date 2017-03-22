@@ -8,11 +8,11 @@ import java.util.List;
 /**
  * 分页查询接口
  */
-public interface PageableMapper<T, PK extends Serializable, Q extends PageableQo> extends BaseMapper<T, PK> {
+public interface PageableMapper<T, PK extends Serializable> extends BaseMapper<T, PK> {
 
     /**
      * 根据 QueryObject 分页查询结果
      */
-    List<T> selectByPageableQo(Q qo);
+    List<T> selectByPageableQo(PageableQo qo);
 
 }

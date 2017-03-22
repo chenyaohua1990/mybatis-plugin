@@ -11,11 +11,11 @@ public final class TotalCountHolder {
 
     private TotalCountHolder() {}
 
-    public static void setTotalCount(int count) {
+    public static void set(int count) {
         totalCount.set(count);
     }
 
-    public static int getTotalCount() {
+    public static int get() {
         return totalCount.get();
     }
 }

@@ -2,6 +2,7 @@ package com.github.miaoxinguo.mybatis.plugin;
 
 import com.github.miaoxinguo.mybatis.plugin.entity.User;
 import com.github.miaoxinguo.mybatis.plugin.mapper.UserMapper;
+import com.github.miaoxinguo.mybatis.plugin.qo.UserQo;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -36,12 +37,12 @@ public class TestUserMapper {
 
     @Test
     public void testSelectByPageableQo() {
-        PageableQo qo = new PageableQo();
+        UserQo qo = new UserQo();
         qo.setPageNum(1);
         qo.setPageSize(20);
         List<User> users = userMapper.selectByPageableQo(qo);
 
-        System.out.println("total count：" + TotalCountHolder.getTotalCount());
+        System.out.println("total count：" + TotalCountHolder.get());
         for (User user : users) {
             System.out.println(user);
         }

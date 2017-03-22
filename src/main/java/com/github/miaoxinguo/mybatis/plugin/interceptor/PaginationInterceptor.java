@@ -58,7 +58,7 @@ public class PaginationInterceptor implements Interceptor {
 
         // 获取count的sql, 查询 count
         String countSql = dialect.getCountSql(sql);
-        logger.debug("count sql: {}", countSql);
+        logger.info("==>  Count Sql: {}", countSql);
 
         Connection connection = (Connection) metaObject.getValue("delegate.executor.transaction.connection");
 
@@ -89,12 +89,11 @@ public class PaginationInterceptor implements Interceptor {
             logger.debug("didn't build page sql, total record count is 0");
             return invocation.proceed();
         }
-        TotalCountHolder.setTotalCount(count);
+        TotalCountHolder.set(count);
 
         // 组装分页 sql
         PageableQo qo = (PageableQo) parameterObject;
         String pagedSql = dialect.getPagedSql(sql, qo.getOffset(), qo.getLimit());
-        logger.debug("page sql: {}", pagedSql);
 
         // delegate 是定义在 RoutingStatementHandler 中的属性，实际的对象是真正执行方法的 StatementHandler
         metaObject.setValue("delegate.boundSql.sql", pagedSql);

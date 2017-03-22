@@ -10,9 +10,6 @@ public class PageableQo {
     private int pageNum;
     private int pageSize;
 
-    public PageableQo() {
-    }
-
     /**
      * 获取偏移量
      */

@@ -36,10 +36,10 @@ public class MySqlDialect implements Dialect {
     public String getCountSql(String originalSql) {
         int orderIndex = SqlUtils.getLastOrderInsertPoint(originalSql);
         int fromIndex = SqlUtils.getAfterFromInsertPoint(originalSql);
-        String countSql = originalSql.substring(0, fromIndex);
+        String subSql = originalSql.substring(0, fromIndex);
 
         // 如果SELECT 中包含 DISTINCT 只能在外层包含COUNT
-        if (countSql.toLowerCase().contains("select distinct") || originalSql.toLowerCase().contains("group by")) {
+        if (subSql.toLowerCase().contains("select distinct") || originalSql.toLowerCase().contains("group by")) {
             return "select count(*) from (" + originalSql.substring(0, orderIndex) + " ) t";
         } else {
             return "select count(*) " + originalSql.substring(fromIndex, orderIndex);
