@@ -7,15 +7,15 @@ package com.github.miaoxinguo.mybatis.plugin;
  */
 public final class TotalCountHolder {
 
-    private static ThreadLocal<Integer> totalCountHolder = new ThreadLocal<>();
+    private static ThreadLocal<Integer> totalCount = new ThreadLocal<>();
 
     private TotalCountHolder() {}
 
     public static void setTotalCount(int count) {
-        totalCountHolder.set(count);
+        totalCount.set(count);
     }
 
     public static int getTotalCount() {
-        return totalCountHolder.get();
+        return totalCount.get();
     }
 }

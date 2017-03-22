@@ -1,6 +1,6 @@
 package com.github.miaoxinguo.mybatis.plugin.interceptor;
 
-import com.github.miaoxinguo.mybatis.plugin.Page;
+import com.github.miaoxinguo.mybatis.plugin.PageableQo;
 import com.github.miaoxinguo.mybatis.plugin.dialect.Dialect;
 import com.github.miaoxinguo.mybatis.plugin.dialect.MySqlDialect;
 import org.apache.ibatis.executor.parameter.ParameterHandler;
@@ -47,9 +47,15 @@ public class PaginationInterceptor implements Interceptor {
         MetaObject metaObject = MetaObject.forObject(handler,
                 new DefaultObjectFactory(), new DefaultObjectWrapperFactory(), new DefaultReflectorFactory());
 
-        // 组装分页 sql
-        Object parameterObject = handler.getParameterHandler().getParameterObject();
-        // TODO 判断是分页sql
+//        Executor executor = (Executor) metaObject.getValue("executor");
+//        executor.query()
+
+        // TODO 测试这个 resultSetHandler 是什么类型
+        ResultSetHandler resultSetHandler = (ResultSetHandler) metaObject.getValue("resultSetHandler");
+        ParameterHandler parameterHandler = handler.getParameterHandler();
+
+        // TODO 判断是分页sql, 当前实现只允许一个参数即PageableQo或其子类, 如需多个参数,这里要修改判断
+        Object parameterObject = parameterHandler.getParameterObject();
         if (!this.isPagedSql(parameterObject)) {
             return invocation.proceed();
         }
@@ -58,10 +64,8 @@ public class PaginationInterceptor implements Interceptor {
         String sql = boundSql.getSql();
 
         // 获取count的sql, 查询 count
-        Connection connection = (Connection) metaObject.getValue("executor.delegate.transaction.connection");
-        ParameterHandler parameterHandler = (ParameterHandler) metaObject.getValue("parameterHandler");
-
         String countSql = dialect.getCountSql(boundSql.getSql());
+        Connection connection = (Connection) metaObject.getValue("executor.delegate.transaction.connection");
 
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
@@ -74,9 +78,9 @@ public class PaginationInterceptor implements Interceptor {
 
             count = (int) JdbcUtils.getResultSetValue(resultSet, 1, int.class);
         } catch (SQLException e) {
-            logger.error("关闭资源异常", e);
+            logger.error("查询总记录数异常", e);
         } finally {
-            // TODO conn 、preparedStatement 是否需要关闭，对mybatis框架是否有影响
+            // conn 由spring 事务管理, preparedStatement 和 resultSet 自己关闭
             JdbcUtils.closeResultSet(resultSet);
             JdbcUtils.closeStatement(preparedStatement);
         }
@@ -86,12 +90,9 @@ public class PaginationInterceptor implements Interceptor {
             return invocation.proceed();
         }
 
-        // TODO 多个参数
-        Page page = (Page) handler.getParameterHandler().getParameterObject();
-        String pagedSql = dialect.getPagedSql(sql, page.getOffset(), page.getLimit());
-        if ("".equals(pagedSql)) {
-            return invocation.proceed();
-        }
+        // 组装分页 sql
+        PageableQo qo = (PageableQo) parameterObject;
+        String pagedSql = dialect.getPagedSql(sql, qo.getOffset(), qo.getLimit());
 
         // delegate 是定义在 RoutingStatementHandler 中的属性，实际的对象是真正执行方法的 StatementHandler
         metaObject.setValue("delegate.boundSql.sql", pagedSql);
@@ -104,11 +105,11 @@ public class PaginationInterceptor implements Interceptor {
     /**
      * 根据参数和返回类型判断是否是分页sql.
      * <p>
-     * 分页方法的参数必须是 Page 的子类, 返回类型必须是 Page;
+     * 分页方法的参数必须是 PageableQo 的子类, 返回类型必须是 ***;
      * 如果返回值是基本类型 或 Integer, 该方法应该是查询数量的方法，而不是分页方法
      */
     private boolean isPagedSql(Object parameterObject) {
-        return parameterObject instanceof Page;
+        return parameterObject instanceof PageableQo;
     }
 
     /**
