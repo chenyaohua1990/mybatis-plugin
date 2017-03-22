@@ -15,3 +15,6 @@ out
 
 ## mac
 /.DS_Store
+
+## important and sensitive info
+/src/test/resources/dataSource.properties
