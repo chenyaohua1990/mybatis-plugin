@@ -20,7 +20,6 @@ import org.apache.ibatis.reflection.wrapper.DefaultObjectWrapperFactory;
 import org.apache.ibatis.session.RowBounds;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.support.JdbcUtils;
 
 import java.security.InvalidParameterException;
 import java.sql.Connection;
@@ -59,7 +58,9 @@ public class PaginationInterceptor implements Interceptor {
 
         // 获取count的sql, 查询 count
         String countSql = dialect.getCountSql(sql);
-        Connection connection = (Connection) metaObject.getValue("executor.delegate.transaction.connection");
+        logger.debug("count sql: {}", countSql);
+
+        Connection connection = (Connection) metaObject.getValue("delegate.executor.transaction.connection");
 
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
@@ -70,17 +71,22 @@ public class PaginationInterceptor implements Interceptor {
             resultSet = preparedStatement.executeQuery();
             resultSet.next();
 
-            count = (int) JdbcUtils.getResultSetValue(resultSet, 1, int.class);
+            count = resultSet.getInt(1);
         } catch (SQLException e) {
             logger.error("查询总记录数异常", e);
         } finally {
             // conn 由spring 事务管理, preparedStatement 和 resultSet 自己关闭
-            JdbcUtils.closeResultSet(resultSet);
-            JdbcUtils.closeStatement(preparedStatement);
+            if (resultSet != null) {
+                resultSet.close();
+            }
+            if(preparedStatement != null) {
+                preparedStatement.close();
+            }
         }
 
         // 结果数为0， 直接返回
         if (count == 0) {
+            logger.debug("didn't build page sql, total record count is 0");
             return invocation.proceed();
         }
         TotalCountHolder.setTotalCount(count);
@@ -88,6 +94,7 @@ public class PaginationInterceptor implements Interceptor {
         // 组装分页 sql
         PageableQo qo = (PageableQo) parameterObject;
         String pagedSql = dialect.getPagedSql(sql, qo.getOffset(), qo.getLimit());
+        logger.debug("page sql: {}", pagedSql);
 
         // delegate 是定义在 RoutingStatementHandler 中的属性，实际的对象是真正执行方法的 StatementHandler
         metaObject.setValue("delegate.boundSql.sql", pagedSql);
@@ -104,11 +111,11 @@ public class PaginationInterceptor implements Interceptor {
     private boolean isPagedSql(String originalSql, Object parameterObject) {
         String sql = SqlUtils.getLineSql(originalSql).toLowerCase();
         if (sql.contains("select count")) {
-            logger.debug("original sql contain 'select count', didn't build page sql");
+            logger.debug("didn't build page sql, original sql contain 'select count'");
             return false;
         }
         if (!(parameterObject instanceof PageableQo)) {
-            logger.debug("查询参数对象不是 Pageable 或其子类, 不进行分页处理");
+            logger.debug("didn't build page sql, query parameter is not instance of PageableQo");
             return false;
         }
         return true;
@@ -134,7 +141,7 @@ public class PaginationInterceptor implements Interceptor {
      */
     @Override
     public void setProperties(Properties properties) {
-        logger.info("mybatis pagination plugin's properties: {}", properties);
+        logger.info("mybatis pagination interceptor properties: {}", properties);
 
         Dialect.Type dialectType = Dialect.Type.valueOf(properties.getProperty("dialect").toUpperCase());
         switch (dialectType) {

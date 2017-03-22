@@ -1,4 +1,4 @@
-package com.github.miaoxinguo.mybatis.plugin;
+package com.github.miaoxinguo.mybatis.plugin.mapper;
 
 import java.io.Serializable;
 

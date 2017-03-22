@@ -6,10 +6,6 @@
         <setting name="lazyLoadingEnabled" value="false"/>
     </settings>
 
-    <typeHandlers>
-        <typeHandler handler="com.github.miaoxinguo.mybatis.plugin.typeHandler.LocalDateTimeTypeHandler"/>
-    </typeHandlers>
-
     <plugins>
         <plugin interceptor="com.github.miaoxinguo.mybatis.plugin.interceptor.PaginationInterceptor">
             <property name="dialect" value="mysql"/>
@@ -20,8 +16,8 @@
         <environment id="development">
             <transactionManager type="JDBC"/>
             <dataSource type="POOLED">
-                <property name="driver" value="com.mysql.driver.jdbcDriver"/>
-                <property name="url" value="jdbc:mysql://127.0.0.1:3306/mybatis-plugin"/>
+                <property name="driver" value="com.mysql.jdbc.Driver"/>
+                <property name="url" value="jdbc:mysql://aws-dev.cbqdef72uoed.us-west-2.rds.amazonaws.com:3306/sbs"/>
                 <property name="username" value="miaoxg"/>
                 <property name="password" value="miaoxg2002"/>
             </dataSource>
@@ -29,6 +25,8 @@
     </environments>
 
     <mappers>
-        <package name="com.github.miaoxinguo.mybatis.plugin.mapper"/>
+        <mapper resource="sqlMap/userMapper.xml"/>
     </mappers>
+
+
 </configuration>
