@@ -26,6 +26,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Properties;
 
 /**
@@ -61,27 +62,23 @@ public class PaginationInterceptor implements Interceptor {
         logger.info("==>  Count Sql: {}", countSql);
 
         Connection connection = (Connection) metaObject.getValue("delegate.executor.transaction.connection");
-
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
         int count = 0;
         try {
+            // 参考 PreparedStatementHandler.instantiateStatement
             preparedStatement = connection.prepareStatement(countSql);
             parameterHandler.setParameters(preparedStatement);
             resultSet = preparedStatement.executeQuery();
-            resultSet.next();
-
-            count = resultSet.getInt(1);
+            if (resultSet.next()) {
+                count = resultSet.getInt(1);
+            }
         } catch (SQLException e) {
             logger.error("查询总记录数异常", e);
         } finally {
             // conn 由spring 事务管理, preparedStatement 和 resultSet 自己关闭
-            if (resultSet != null) {
-                resultSet.close();
-            }
-            if(preparedStatement != null) {
-                preparedStatement.close();
-            }
+            this.closeResultSet(resultSet);
+            this.closeStatement(preparedStatement);
         }
 
         // 结果数为0， 直接返回
@@ -149,6 +146,34 @@ public class PaginationInterceptor implements Interceptor {
                 break;
             default:
                 throw new InvalidParameterException("'dialect' property is invalid.");
+        }
+    }
+
+    /**
+     * 关闭资源
+     */
+    private void closeResultSet(ResultSet resultSet) {
+        try{
+            if (resultSet != null) {
+                resultSet.close();
+            }
+        } catch (Exception e) {
+            // ignore
+            logger.error("close resultSet error");
+        }
+    }
+
+    /**
+     * 关闭资源
+     */
+    private void closeStatement(Statement statement) {
+        try{
+            if (statement != null) {
+                statement.close();
+            }
+        } catch (Exception e) {
+            // ignore
+            logger.error("close statement error");
         }
     }
 }

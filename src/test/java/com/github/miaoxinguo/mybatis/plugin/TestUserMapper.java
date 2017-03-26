@@ -38,6 +38,7 @@ public class TestUserMapper {
     @Test
     public void testSelectByPageableQo() {
         UserQo qo = new UserQo();
+        qo.setId(1);
         qo.setPageNum(1);
         qo.setPageSize(20);
         List<User> users = userMapper.selectByPageableQo(qo);
