@@ -1,13 +1,13 @@
 package com.github.miaoxinguo.mybatis.plugin.interceptor;
 
 import com.github.miaoxinguo.mybatis.plugin.PageableQo;
-import com.github.miaoxinguo.mybatis.plugin.SqlUtils;
 import com.github.miaoxinguo.mybatis.plugin.TotalCountHolder;
 import com.github.miaoxinguo.mybatis.plugin.dialect.Dialect;
 import com.github.miaoxinguo.mybatis.plugin.dialect.MySqlDialect;
 import org.apache.ibatis.executor.parameter.ParameterHandler;
 import org.apache.ibatis.executor.resultset.ResultSetHandler;
 import org.apache.ibatis.executor.statement.StatementHandler;
+import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.plugin.Interceptor;
 import org.apache.ibatis.plugin.Intercepts;
 import org.apache.ibatis.plugin.Invocation;
@@ -39,6 +39,7 @@ public class PaginationInterceptor implements Interceptor {
     private static final Logger logger = LoggerFactory.getLogger(PaginationInterceptor.class);
 
     private Dialect dialect;
+    private String pageSqlSuffix = "ByPageableQo";
 
     @Override
     public Object intercept(Invocation invocation) throws Throwable {
@@ -48,16 +49,19 @@ public class PaginationInterceptor implements Interceptor {
         MetaObject metaObject = MetaObject.forObject(handler,
                 new DefaultObjectFactory(), new DefaultObjectWrapperFactory(), new DefaultReflectorFactory());
 
-        ParameterHandler parameterHandler = handler.getParameterHandler();
-
         // 判断是分页sql, 当前实现只允许一个参数即PageableQo或其子类, 如需多个参数,这里要修改判断
+        MappedStatement mappedStatement = (MappedStatement) metaObject.getValue("delegate.mappedStatement");
+        String statement = mappedStatement.getId();
+
+        ParameterHandler parameterHandler = handler.getParameterHandler();
         Object parameterObject = parameterHandler.getParameterObject();
-        String sql = handler.getBoundSql().getSql();
-        if (!this.isPagedSql(sql, parameterObject)) {
+
+        if (!this.isPagedSql(statement, parameterObject)) {
             return invocation.proceed();
         }
 
         // 获取count的sql, 查询 count
+        String sql = handler.getBoundSql().getSql();
         String countSql = dialect.getCountSql(sql);
         logger.info("==>  Count Sql: {}", countSql);
 
@@ -83,7 +87,7 @@ public class PaginationInterceptor implements Interceptor {
 
         // 结果数为0， 直接返回
         if (count == 0) {
-            logger.debug("didn't build page sql, total record count is 0");
+            logger.debug("no paging query, total record count is 0");
             return invocation.proceed();
         }
         TotalCountHolder.set(count);
@@ -100,18 +104,18 @@ public class PaginationInterceptor implements Interceptor {
     }
 
     /**
-     * 根据参数和返回类型判断是否是分页sql.
+     * 根据 查询语句的id和参数判断是否是分页sql.
      * <p>
-     * 分页方法的参数必须是 PageableQo 的子类, 查询sql不能包含select count;
+     * 分页方法的id必须包含指定后缀；参数必须是 PageableQo 的子类;
+     * </p>
      */
-    private boolean isPagedSql(String originalSql, Object parameterObject) {
-        String sql = SqlUtils.getLineSql(originalSql).toLowerCase();
-        if (sql.contains("select count")) {
-            logger.debug("didn't build page sql, original sql contain 'select count'");
+    private boolean isPagedSql(String statement, Object parameterObject) {
+        if (statement == null || !statement.endsWith(pageSqlSuffix)) {
+            logger.debug("no paging query, statement id isn't end with suffix '{}'", pageSqlSuffix);
             return false;
         }
         if (!(parameterObject instanceof PageableQo)) {
-            logger.debug("didn't build page sql, query parameter is not instance of PageableQo");
+            logger.debug("no paging query, query parameter is not instance of PageableQo");
             return false;
         }
         return true;
@@ -139,6 +143,7 @@ public class PaginationInterceptor implements Interceptor {
     public void setProperties(Properties properties) {
         logger.info("mybatis pagination interceptor properties: {}", properties);
 
+        // 设置方言
         Dialect.Type dialectType = Dialect.Type.valueOf(properties.getProperty("dialect").toUpperCase());
         switch (dialectType) {
             case MYSQL:
@@ -146,6 +151,12 @@ public class PaginationInterceptor implements Interceptor {
                 break;
             default:
                 throw new InvalidParameterException("'dialect' property is invalid.");
+        }
+
+        // 设置分页sql的后缀
+        String suffix = properties.getProperty("pageSqlSuffix");
+        if (suffix != null && !suffix.trim().isEmpty()) {
+            pageSqlSuffix = suffix;
         }
     }
 
