@@ -8,6 +8,11 @@
         <setting name="lazyLoadingEnabled" value="false"/>
     </settings>
 
+    <typeHandlers>
+        <typeHandler handler="com.github.miaoxinguo.mybatis.plugin.typehandler.CustomerEnumTypeHandler"
+            javaType="com.github.miaoxinguo.mybatis.plugin.constant.Status"/>
+    </typeHandlers>
+
     <plugins>
         <plugin interceptor="com.github.miaoxinguo.mybatis.plugin.interceptor.PaginationInterceptor">
             <property name="dialect" value="mysql"/>

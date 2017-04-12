@@ -1,5 +1,7 @@
 package com.github.miaoxinguo.mybatis.plugin.entity;
 
+import com.github.miaoxinguo.mybatis.plugin.constant.Status;
+
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -11,6 +13,7 @@ public class User implements Serializable {
     private Integer id;
     private String name;
     private Integer age;
+    private Status status;
     private LocalDate birthday;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
@@ -63,9 +66,24 @@ public class User implements Serializable {
         this.updateTime = updateTime;
     }
 
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
     @Override
     public String toString() {
-        return "User{" + "id=" + id + ", name='" + name + '\'' + ", age=" + age + ", birthday=" + birthday + ", " +
-            "createTime=" + createTime + ", updateTime=" + updateTime + '}';
+        return "User{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", age=" + age +
+                ", status=" + status +
+                ", birthday=" + birthday +
+                ", createTime=" + createTime +
+                ", updateTime=" + updateTime +
+                '}';
     }
 }

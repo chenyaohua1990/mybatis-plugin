@@ -6,6 +6,7 @@
         <result column="name" property="name"/>
         <result column="age" property="age"/>
         <result column="birthday" property="birthday"/>
+        <result column="status" property="status"/>
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
     </resultMap>
