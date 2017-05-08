@@ -15,7 +15,8 @@ public final class TotalCountHolder {
         totalCount.set(count);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public static int get() {
-        return totalCount.get();
+        return totalCount.get() == null ? 0 : totalCount.get();
     }
 }
